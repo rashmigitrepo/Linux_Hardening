@@ -1,0 +1,34 @@
+---
+- name: 3.3.3.11 Time Synchronisation -> Update Chrony Configuration
+  hosts: your_target_hosts
+  become: true
+  vars:
+    ntp_server_1: "192.168.115.210"
+    ntp_server_2: "192.168.115.211"
+    ntp_key: "65480"
+
+  tasks:
+    - name: Insert NTP server 1
+      lineinfile:
+        path: /etc/chrony.conf
+        line: "server {{ ntp_server_1 }} key {{ ntp_key }} prefer"
+        state: present
+
+    - name: Insert NTP server 2
+      lineinfile:
+        path: /etc/chrony.conf
+        line: "server {{ ntp_server_2 }} key {{ ntp_key }}"
+        state: present
+
+    - name: Set keyfile in Chrony configuration
+      replace:
+        path: /etc/chrony.conf
+        regexp: '^keyfile.*'
+        replace: 'keyfile /etc/chrony.keys'
+        state: present
+
+    - name: Restart chronyd to apply changes
+      service:
+        name: chronyd
+        state: restarted
+        enabled: true
