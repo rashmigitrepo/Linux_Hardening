@@ -1,0 +1,28 @@
+---
+- name: 3.3.3.5 Trusted hosts -> Ensure certain files are not present on servers
+  hosts: your_target_hosts
+  become: true
+
+  tasks:
+    - name: Ensure /etc/hosts.equiv is not present
+      file:
+        path: "/etc/hosts.equiv"
+        state: absent
+
+    - name: Find .rhosts and .netrc files in user home directories
+      find:
+        paths: /home
+        patterns: "{{ item }}"
+        recurse: true
+        file_type: file
+      register: files_to_delete
+      with_items:
+        - .rhosts
+        - .netrc
+
+    - name: Remove found files
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ files_to_delete.results | map(attribute='files') | flatten }}"
+      when: files_to_delete.results | map(attribute='files') | flatten | length > 0
