@@ -4,5 +4,5 @@
   become: true
   tasks:
     - name: Ensure wireless interfaces are disabled 
-      script: script_3_1_4.sh
+      script: script_3.3.3.6.sh
  
