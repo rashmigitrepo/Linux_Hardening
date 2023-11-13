@@ -1,0 +1,48 @@
+---
+- name: Update sysctl.conf settings
+  hosts: your_target_hosts
+  become: true
+
+  vars:
+    sysctl_params:
+      net.ipv4.conf.all.accept_source_route: 0
+      net.ipv4.conf.all.accept_redirects: 0
+      net.ipv4.conf.default.log_martians: 1
+      net.ipv4.conf.all.log_martians: 1
+      net.ipv4.icmp_echo_ignore_broadcasts: 1
+      net.ipv4.conf.default.secure_redirects: 0
+      net.ipv4.conf.all.secure_redirects: 0
+      net.ipv4.conf.default.accept_redirects: 0
+      net.ipv4.conf.default.accept_source_route: 0
+      net.ipv4.conf.all.send_redirects: 0
+      net.ipv4.conf.default.send_redirects: 0
+      net.ipv4.icmp_ignore_bogus_error_responses: 1
+      kernel.randomize_va_space: 2
+      # net.ipv4.conf.all.rp_filter will be set based on the NIC count
+
+  tasks:
+    - name: 3.3.3.3 Sysctl.conf setting
+      block:
+        - name: Determine the number of active network interfaces
+          shell: |
+            ip link show up | grep -c 'state UP'
+          register: interface_count
+          changed_when: false
+
+        - name: Set sysctl values
+          lineinfile:
+            path: /etc/sysctl.conf
+            regexp: '^{{ item.key }}'
+            line: "{{ item.key }}={{ item.value }}"
+          loop: "{{ sysctl_params.items() }}"
+          when: item.key != 'net.ipv4.conf.all.rp_filter'
+
+        - name: Set net.ipv4.conf.all.rp_filter based on active NIC count
+          lineinfile:
+            path: /etc/sysctl.conf
+            regexp: '^net.ipv4.conf.all.rp_filter'
+            line: "net.ipv4.conf.all.rp_filter={{ interface_count.stdout | int }}"
+          when: interface_count.stdout | int > 1
+
+        - name: Apply sysctl changes
+          shell: sysctl -p
