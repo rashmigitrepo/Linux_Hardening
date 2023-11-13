@@ -1,0 +1,30 @@
+---
+- name: Update SSH Configuration
+  hosts: your_target_hosts
+  become: true
+
+  tasks:
+    - name: Update sshd_config settings
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "^#?{{ item.option }}"
+        line: "{{ item.option }} {{ item.value }}"
+        state: present
+      loop:
+        - { option: 'IgnoreRhosts', value: 'yes' }
+        - { option: 'MaxAuthTries', value: '4' }
+        - { option: 'PasswordAuthentication', value: 'yes' }
+        - { option: 'PermitEmptyPasswords', value: 'no' }
+        - { option: 'PermitRootLogin', value: 'no' }
+        - { option: 'Protocol', value: '2' }
+        - { option: 'ClientAliveInterval', value: '300' }
+        - { option: 'ClientAliveCountMax', value: '0' }
+        - { option: 'LoginGraceTime', value: '60' }
+      notify: restart sshd
+
+  handlers:
+    - name: restart sshd
+      service:
+        name: sshd
+        state: restarted
+        enabled: true
