@@ -17,6 +17,7 @@
       net.ipv4.conf.all.send_redirects: 0
       net.ipv4.conf.default.send_redirects: 0
       net.ipv4.icmp_ignore_bogus_error_responses: 1
+      net.ipv4.tcp_syncookies: 1 #3.3.3.4
       kernel.randomize_va_space: 2
       # net.ipv4.conf.all.rp_filter will be set based on the NIC count
 
@@ -33,7 +34,7 @@
           lineinfile:
             path: /etc/sysctl.conf
             regexp: '^{{ item.key }}'
-            line: "{{ item.key }}={{ item.value }}"
+            line: "{{ item.key }} = {{ item.value }}"
           loop: "{{ sysctl_params.items() }}"
           when: item.key != 'net.ipv4.conf.all.rp_filter'
 
@@ -41,7 +42,7 @@
           lineinfile:
             path: /etc/sysctl.conf
             regexp: '^net.ipv4.conf.all.rp_filter'
-            line: "net.ipv4.conf.all.rp_filter={{ interface_count.stdout | int }}"
+            line: "net.ipv4.conf.all.rp_filter = {{ interface_count.stdout | int }}"
           when: interface_count.stdout | int > 1
 
         - name: Apply sysctl changes
