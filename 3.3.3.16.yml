@@ -1,0 +1,24 @@
+---
+- name: 3.3.3.16 Password Settings -> Update System Authentication Configuration
+  hosts: your_target_hosts
+  become: true
+
+  tasks:
+    - name: Set INACTIVE in /etc/default/useradd
+      lineinfile:
+        path: /etc/default/useradd
+        regexp: '^#?INACTIVE='
+        line: 'INACTIVE=60'
+        state: present
+
+    - name: Update /etc/login.defs settings
+      lineinfile:
+        path: /etc/login.defs
+        regexp: '^#?{{ item.option }}'
+        line: '{{ item.option }} {{ item.value }}'
+        state: present
+      loop:
+        - { option: 'PASS_MAX_DAYS', value: '60' }
+        - { option: 'PASS_MIN_DAYS', value: '0' }
+        - { option: 'PASS_MIN_LEN', value: '14' }
+        - { option: 'PASS_WARN_AGE', value: '7' }
