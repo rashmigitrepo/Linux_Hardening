@@ -1,0 +1,15 @@
+---
+- name: Set system-wide umask value for RHEL
+  hosts: your_rhel_hosts
+  become: true  # Required to edit /etc/bashrc
+  tasks:
+    - name: 3.3.3.1 Umask -> Ensure umask is set to 0022 in /etc/bashrc
+      lineinfile:
+        path: /etc/bashrc
+        regexp: '^umask'
+        line: 'umask 0022'
+        state: present
+ 
+
+
+
