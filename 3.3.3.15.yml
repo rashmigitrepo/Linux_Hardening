@@ -1,0 +1,35 @@
+---
+- name: 3.3.3.15 Duplicate UID & GID
+  hosts: your_target_hosts
+  become: true
+
+  tasks:
+    - name: Ensure no duplicate UIDs exist 
+      block:
+        - name: Ensure no duplicate UIDs exist | list
+          script: script_uid_3.3.3.15.sh
+          register: output_uid_3.3.3.15
+        - name: 6.2.3 Ensure no duplicate UIDs exist | print
+          debug:
+            msg: "Warning!! The following users have UIDs that are duplicates: {{ output_uid_3.3.3.15.stdout_lines }}"
+          when: output_uid_3.3.3.15.stdout_lines | length > 0
+        - name: 6.2.3 Ensure no duplicate UIDs exist | print
+          debug:
+            msg: "There are no duplicate UIDs"
+          when: output_uid_3.3.3.15.stdout_lines | length == 0
+
+
+
+    - name: Ensure no duplicate GIDs exist 
+      block:
+        - name: 6.2.4 Ensure no duplicate GIDs exist | list
+          script: script_gid_3.3.3.15.sh
+          register: output_gid_3.3.3.15
+        - name: 6.2.4 Ensure no duplicate GIDs exist | print
+          debug:
+            msg: "Warning!! The following groups have duplicate GIDs: {{ output_gid_3.3.3.15.stdout_lines }}"
+          when: output_gid_3.3.3.15.stdout_lines | length > 0
+        - name: 6.2.4 Ensure no duplicate GIDs exist | print
+          debug:
+            msg: "There are no duplicate GIDs"
+          when: output_gid_3.3.3.15.stdout_lines | length == 0
