@@ -1,0 +1,22 @@
+---
+- name: 3.3.3.13 Disable Mounting of Filesystems
+  hosts: your_target_hosts
+  become: true
+
+  vars:
+    filesystems_to_disable: [cramfs, freevxfs, jffs2, hfs, hfsplus, squashfs, udf, fat, vfat, dccp, sctp, rds, tipc]
+
+  tasks:
+    - name: Create configuration files to disable filesystems and protocols
+      lineinfile:
+        path: "/etc/modprobe.d/{{ item }}.conf"
+        line: "install {{ item }} /bin/false blacklist {{ item }}"
+        state: present
+        backup: true
+        create: true
+      loop: "{{ filesystems_to_disable }}"
+
+    - name: Unload filesystems and protocols modules
+      shell: "modprobe -r {{ item }}"
+      ignore_errors: true
+      loop: "{{ filesystems_to_disable }}"
